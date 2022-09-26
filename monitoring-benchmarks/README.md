@@ -50,11 +50,6 @@ num_workers=3
 create_cluster "${cluster_name}" ${num_workers}
 ```
 
-
-FIXME cat conf/install-config.original.yaml 
-
-
-
 ## Launch benchmarks
 
 TODO
@@ -64,6 +59,17 @@ TODO
 TODO
 
 TODO: ensure to collect the results before the cluster is automatically destroyed. Make clear persistent storage is this git repo
+
+Delete a cluster as follows:
+
+```bash
+source common.sh
+# If needed see latest cluster name as follows
+ls -ltr "${MON_BENCHMARKS_ROOT}/clusters"
+# cluster to delete
+cluster_name=...
+delete_cluster "${cluster_name}"
+```
 
 ## TODO Launch all release benchmarks
 
