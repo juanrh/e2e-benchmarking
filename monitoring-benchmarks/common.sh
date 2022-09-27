@@ -38,10 +38,11 @@ function create_cluster {
     log_file="${LOGS_ROOT}/create_cluster-$(date_w_format).log"
     echo "Using log file ${log_file}"
     config_dir="$(cluster_config_dir "${CLUSTER_NAME}")"
+    mkdir -p "${config_dir}"
     
-    SSH_KEY=$(cat ${SSH_KEY_PATH})
+    SSH_KEY=$(cat "${SSH_KEY_PATH}")
     export SSH_KEY
-    PULL_SECRET=$(cat ${PULL_SECRET_PATH})
+    PULL_SECRET=$(cat "${PULL_SECRET_PATH}")
     export PULL_SECRET
     export CLUSTER_NAME
     export NUM_WORKERS
@@ -50,7 +51,9 @@ function create_cluster {
     install_config_redacted=$(grep -v pullSecret "${install_config_file}" | grep -v ssh)
     log "${log_file}" "Using install configuration ${install_config_redacted}"
 
-    openshift-install --dir="${config_dir}" create cluster 2>&1 | grep -v password | tee -a "${log_file}"
+    openshift-install --dir="${config_dir}" create cluster 2>&1 | tee -a "${log_file}"
+    < "${log_file}" grep -v password > "${log_file}.clean"
+    mv "${log_file}.clean" "${log_file}"
 
     log "${log_file}" "cluster kubeconfig available at ${config_dir}/auth/kubeconfig"
 
@@ -70,5 +73,5 @@ function delete_cluster {
     echo "Using log file ${log_file}"
     config_dir="$(cluster_config_dir "${CLUSTER_NAME}")"
 
-    openshift-install destroy cluster --dir="${config_dir}" --log-level=debug | tee -a "${log_file}"
+    openshift-install destroy cluster --dir="${config_dir}" --log-level=debug 2>&1 | tee -a "${log_file}"
 }

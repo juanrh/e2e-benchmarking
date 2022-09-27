@@ -36,6 +36,7 @@ openshift-install --help
 ## Create a cluster
 
 ```bash
+export AWS_PROFILE=openshift-monitoring-benchmarks
 # Define env vars to locate your pull secret, and a public ssh key file to access the cluster nodes.
 ## path to file where you stored your pull secret
 export PULL_SECRET_PATH=...
@@ -47,6 +48,7 @@ source common.sh
 cluster_name="${USER}-prombenchmark-$(date_w_format)"
 # adjust accordingly
 num_workers=3
+# Check stdout for cluster login (will be removed from log)
 create_cluster "${cluster_name}" ${num_workers}
 ```
 
