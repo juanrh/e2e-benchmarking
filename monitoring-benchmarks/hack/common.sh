@@ -2,11 +2,13 @@
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 CONFIG_ROOT="${SCRIPT_DIR}/../config"
-
+JSONNET_ROOT="${SCRIPT_DIR}/../jsonnet"
 MON_BENCHMARKS_ROOT="${HOME}/.rh/monitoring-benchmarks"
 LOGS_ROOT="${SCRIPT_DIR}/../logs"
 
 mkdir -p "${LOGS_ROOT}"
+mkdir -p "${MANIFESTS_ROOT}"
+export PATH="${LOCAL_ROOT}/bin:${PATH}"
 
 function date_w_format {
   date +%Y-%m-%d--%H-%M-%S
@@ -76,4 +78,10 @@ function delete_cluster {
     config_dir="$(cluster_config_dir "${CLUSTER_NAME}")"
 
     openshift-install destroy cluster --dir="${config_dir}" --log-level=debug 2>&1 | tee -a "${log_file}"
+}
+
+function jsonnet_build {
+    rm -rf "${MANIFESTS_ROOT}"
+    mkdir -p "${MANIFESTS_ROOT}"
+    jsonnet "${JSONNET_ROOT}/main.jsonnet" > "${MANIFESTS_ROOT}/main.json"
 }

@@ -5,10 +5,14 @@ COMMON_SCRIPT := $(HACK_DIR)/common.sh
 PYTHON := $(ROOT_DIR)/.venv/bin/python
 PIP := $(ROOT_DIR)/.venv/bin/pip
 JUPYTER := $(ROOT_DIR)/.venv/bin/jupyter
-BIN_DIR ?= $(shell pwd)/.local/bin
+LOCAL_ROOT := $(ROOT_DIR)/.local
+export LOCAL_ROOT
+BIN_DIR := $(LOCAL_ROOT)/bin
+MANIFESTS_ROOT := $(LOCAL_ROOT)/manifests
+export MANIFESTS_ROOT
 
 JSONNET_BIN=$(BIN_DIR)/jsonnet
-TOOLING=$(JSONNET_BIN) 
+TOOLING=$(JSONNET_BIN)
 
 .PHONY: cluster/new-name
 cluster/new-name:
@@ -37,10 +41,17 @@ $(TOOLING): $(BIN_DIR)
 	@echo Installing tools from hack/tools.go
 	@cd hack/tools && go list -mod=mod -tags tools -f '{{ range .Imports }}{{ printf "%s\n" .}}{{end}}' ./ | xargs -tI % go build -mod=mod -o $(BIN_DIR) %
 
-.PHONY: build-jsonnet
-build-jsonnet: $(TOOLING)
-	$(HACK_DIR)/build-jsonnet.sh
+.PHONY: jsonnet/build
+jsonnet/build: $(TOOLING)
+	source $(COMMON_SCRIPT) && jsonnet_build
 
+.PHONY: benchmarks/deploy
+benchmarks/deploy: jsonnet/build
+	jq -r  .[] $(MANIFESTS_ROOT)/main.json | oc apply -f -
+
+.PHONY: benchmarks/undeploy
+benchmarks/undeploy: jsonnet/build
+	jq -r  .[] $(MANIFESTS_ROOT)/main.json | oc delete --ignore-not-found=true -f -
 
 .venv:
 	python -m venv .venv

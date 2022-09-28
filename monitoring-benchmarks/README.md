@@ -11,6 +11,10 @@ Follow the subsections below to perform each step
 
 ## Prerequisites
 
+### Install jq
+
+For MacOS use `brew install jq`
+
 ### Get IAM user in our dev account, and setup AWS CLI profile
 
 TODO: blocked by account request
