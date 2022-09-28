@@ -11,8 +11,6 @@ Follow the subsections below to perform each step
 
 ## Prerequisites
 
-TODO
-
 ### Get IAM user in our dev account, and setup AWS CLI profile
 
 TODO: blocked by account request
@@ -33,6 +31,20 @@ Download the OpenShift installer CLI and your pull secret from [here](https://co
 openshift-install --help
 ```
 
+### (Local dev only) Install python
+
+[pyenv](https://github.com/pyenv/pyenv) is a simple option, but any installtion of Python 3.9.10 works.
+
+First time setup:
+
+```bash
+pyenv install 3.9.10
+pyenv shell 3.9.10
+make deps
+```
+
+Daily usage: `source .venv/bin/activate`
+
 ## Create a cluster
 
 ```bash
@@ -43,16 +55,23 @@ export PULL_SECRET_PATH=...
 ## path to ssh public key to use to setup ssh access to cluster nodes
 export SSH_KEY_PATH=...
 
-source common.sh
-# must include your login
-cluster_name="${USER}-prombenchmark-$(date_w_format)"
+# must include your RH SSO login
+export cluster_name=$(make cluster/new-name)
 # adjust accordingly
-num_workers=3
+export num_workers=3
 # Check stdout for cluster login (will be removed from log)
-create_cluster "${cluster_name}" ${num_workers}
+make cluster/create
+# get cluster credentials
+export KUBECONFIG=$(make cluster/kubeconfig)
 ```
 
 ## Launch benchmarks
+
+
+```bash
+docker login -u QUAY_USER quay.io
+```
+
 
 TODO
 
@@ -65,12 +84,11 @@ TODO: ensure to collect the results before the cluster is automatically destroye
 Delete a cluster as follows:
 
 ```bash
-source common.sh
 # If needed see latest cluster name as follows
-ls -ltr "${MON_BENCHMARKS_ROOT}/clusters"
+make cluster/list
 # cluster to delete
-cluster_name=...
-delete_cluster "${cluster_name}"
+export cluster_name=...
+make cluster/delete
 ```
 
 ## TODO Launch all release benchmarks

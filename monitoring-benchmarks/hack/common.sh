@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-mkdir -p "${SCRIPT_DIR}/logs"
+CONFIG_ROOT="${SCRIPT_DIR}/../config"
 
 MON_BENCHMARKS_ROOT="${HOME}/.rh/monitoring-benchmarks"
-LOGS_ROOT="${SCRIPT_DIR}/logs"
+LOGS_ROOT="${SCRIPT_DIR}/../logs"
+
+mkdir -p "${LOGS_ROOT}"
 
 function date_w_format {
   date +%Y-%m-%d--%H-%M-%S
@@ -47,7 +49,7 @@ function create_cluster {
     export CLUSTER_NAME
     export NUM_WORKERS
     install_config_file="${config_dir}/install-config.yaml"
-    < "${SCRIPT_DIR}/config/install-config.template.yaml" envsubst > "${install_config_file}"
+    < "${CONFIG_ROOT}/install-config.template.yaml" envsubst > "${install_config_file}"
     install_config_redacted=$(grep -v pullSecret "${install_config_file}" | grep -v ssh)
     log "${log_file}" "Using install configuration ${install_config_redacted}"
 
