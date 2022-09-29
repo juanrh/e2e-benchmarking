@@ -88,10 +88,19 @@ function jsonnet_build {
 
 function run_benchmarks_continuously {
     # Assuming env vars defined: BENCHMARKS_RUNS_ROOT PODS_PER_NODE POD_CHURNING_PERIOD NUMBER_OF_NS
+
+    # Make function `openshift_login` a no-op so we can run auth wih RBAC credentials
+    sed -i '/function\sopenshift_login.*/a return 0' "${E2E_BENCHMARKING_ROOT}/utils/common.sh"
+    # Use `kubectl` as `oc`
+    function oc { kubectl "$@"; }
+    export -f oc
+
     while true
     do
         run_root="${BENCHMARKS_RUNS_ROOT}/$(date_w_format)"
         mkdir -p "${run_root}"
+        echo
+        echo
         echo "Starting new benchmark run at ${run_root}"
         run_benchmarks "${run_root}" "${PODS_PER_NODE}" "${POD_CHURNING_PERIOD}" "${NUMBER_OF_NS}"
         echo "Completed benchmark run at ${run_root}"

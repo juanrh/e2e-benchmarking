@@ -61,6 +61,7 @@ local benchmarks_runner_replica_set() =
                 }
             },
             spec: {
+                serviceAccountName: "benchmarks-runner",
                 volumes: [
                     {
                         name: "benchmarks-runner",
@@ -117,7 +118,48 @@ local benchmarks_runner_replica_set() =
     }
 };
 
-// FIXME kube credentails: like an operator
-// FIXME config to env var
+local benchmarks_runner_rbac() =
+[
+{
+    apiVersion: "rbac.authorization.k8s.io/v1",
+    kind: "ClusterRole",
+    metadata: {
+        creationTimestamp: null,
+        name: "benchmarks-runner-role"
+    },
+    rules: [
+        {
+            apiGroups: ['*'], resources: ['*'], verbs: ['*'],
+        }
+    ]
+},
+{
+    apiVersion: "v1",
+    kind: "ServiceAccount",
+    metadata: {
+      name: "benchmarks-runner",
+      namespace: benchmarks_namespace
+    }
+},{
+    apiVersion: "rbac.authorization.k8s.io/v1",
+    kind: "ClusterRoleBinding",
+    metadata: {
+        name: "benchmarks-runner-rolebinding",
+    },
+    roleRef: {
+      apiGroup: "rbac.authorization.k8s.io",
+      kind: "ClusterRole",
+      name: "benchmarks-runner-role"
+    },
+    subjects: [
+        {
+            kind: "ServiceAccount",
+            name: "benchmarks-runner",
+            namespace: benchmarks_namespace
+        }
+    ]
+}
+];
 
-[ namespace(),  benchmarks_pvc(), benchmarks_runner_replica_set() ]
+[ namespace(),  benchmarks_pvc() ] +
+benchmarks_runner_rbac() + [ benchmarks_runner_replica_set() ]
