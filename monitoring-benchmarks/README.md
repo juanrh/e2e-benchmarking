@@ -44,7 +44,7 @@ First time setup:
 ```bash
 pyenv install 3.9.10
 pyenv shell 3.9.10
-make deps
+make python/deps
 ```
 
 Daily usage: `source .venv/bin/activate`

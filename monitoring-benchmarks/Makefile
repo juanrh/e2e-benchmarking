@@ -10,6 +10,9 @@ export LOCAL_ROOT
 BIN_DIR := $(LOCAL_ROOT)/bin
 MANIFESTS_ROOT := $(LOCAL_ROOT)/manifests
 export MANIFESTS_ROOT
+E2E_BENCHMARKING_ROOT := $(LOCAL_ROOT)/e2e-benchmarking
+export E2E_BENCHMARKING_ROOT
+E2E_BENCHMARKING_HASH := 'ec219202f02e766214b9c66618b41c717a58189a'
 
 JSONNET_BIN=$(BIN_DIR)/jsonnet
 TOOLING=$(JSONNET_BIN)
@@ -56,13 +59,22 @@ benchmarks/undeploy: jsonnet/build
 .venv:
 	python -m venv .venv
 
-.PHONY: deps
-deps: .venv
+.PHONY: python/deps
+python/deps: .venv
 	cd $(ROOT_DIR) && $(PIP) install -e .
 
 .PHONY: run/notebook
 run/notebook: # make run/notebook output=$(pwd)/foo.html
 	cd $(ROOT_DIR) && $(JUPYTER) nbconvert --to=html --execute monitoring-benchmarks/monitoring-benchmarks.ipynb --output="${output}"
+
+$(E2E_BENCHMARKING_ROOT):
+	cd $(LOCAL_ROOT) && git clone https://github.com/cloud-bulldozer/e2e-benchmarking.git && cd e2e-benchmarking && git checkout $(E2E_BENCHMARKING_HASH)
+
+.PHONY: run/benchmarks
+# This assumes KUBECONFIG is set
+# Example: make run/benchmarks run_root=".local/run_benchmarks/$(date +%Y-%m-%d--%H-%M-%S)" pods_per_node=10 pod_churning_period='1m' number_of_ns=2
+run/benchmarks: $(E2E_BENCHMARKING_ROOT)
+	source $(COMMON_SCRIPT) && run_benchmarks "${run_root}" "${pods_per_node}" "${pod_churning_period}" "${number_of_ns}"
 
 ## FIXME DRY image tag
 
