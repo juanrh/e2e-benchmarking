@@ -50,11 +50,11 @@ jsonnet/build: $(TOOLING)
 
 .PHONY: benchmarks/deploy
 benchmarks/deploy: jsonnet/build
-	jq -r  .[] $(MANIFESTS_ROOT)/main.json | oc apply -f -
+	jq -r .[] $(MANIFESTS_ROOT)/main.json | oc apply -f -
 
 .PHONY: benchmarks/undeploy
 benchmarks/undeploy: jsonnet/build
-	jq -r  .[] $(MANIFESTS_ROOT)/main.json | oc delete --ignore-not-found=true -f -
+	jq -r .[] $(MANIFESTS_ROOT)/main.json | oc delete --ignore-not-found=true -f -
 
 .venv:
 	python -m venv .venv

@@ -114,6 +114,8 @@ function run_benchmarks {
 
     workload_root="${E2E_BENCHMARKING_ROOT}/workloads/prometheus-sizing"
     rm -rf "${workload_root}/collected-metrics/*"
+    # so the downloaded `kube-burner` command is available for the workload script
+    export PATH="${workload_root}":"${PATH}"
     pushd "${workload_root}"
     ./prometheus-sizing-churning.sh
     popd
