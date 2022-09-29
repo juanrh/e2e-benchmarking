@@ -14,6 +14,11 @@ E2E_BENCHMARKING_ROOT := $(LOCAL_ROOT)/e2e-benchmarking
 export E2E_BENCHMARKING_ROOT
 E2E_BENCHMARKING_HASH := 'ec219202f02e766214b9c66618b41c717a58189a'
 
+IMAGE_GROUP := openshift
+IMAGE_NAME := monitoring-benchmarks
+IMAGE_VERSION := '0.1.0'
+IMAGE_TAG := $(IMAGE_GROUP)/$(IMAGE_NAME):$(IMAGE_VERSION)
+
 JSONNET_BIN=$(BIN_DIR)/jsonnet
 TOOLING=$(JSONNET_BIN)
 
@@ -67,8 +72,11 @@ python/deps: .venv
 run/notebook: # make run/notebook output=$(pwd)/foo.html
 	cd $(ROOT_DIR) && $(JUPYTER) nbconvert --to=html --execute monitoring-benchmarks/monitoring-benchmarks.ipynb --output="${output}"
 
-$(E2E_BENCHMARKING_ROOT):
-	cd $(LOCAL_ROOT) && git clone https://github.com/cloud-bulldozer/e2e-benchmarking.git && cd e2e-benchmarking && git checkout $(E2E_BENCHMARKING_HASH)
+$(LOCAL_ROOT):
+	mkdir -p $(LOCAL_ROOT)
+
+$(E2E_BENCHMARKING_ROOT): $(LOCAL_ROOT)
+	ls $(E2E_BENCHMARKING_ROOT) || ( cd $(LOCAL_ROOT) && git clone https://github.com/cloud-bulldozer/e2e-benchmarking.git && cd e2e-benchmarking && git checkout $(E2E_BENCHMARKING_HASH) )
 
 .PHONY: run/benchmarks
 # This assumes KUBECONFIG is set
@@ -76,16 +84,25 @@ $(E2E_BENCHMARKING_ROOT):
 run/benchmarks: $(E2E_BENCHMARKING_ROOT)
 	source $(COMMON_SCRIPT) && run_benchmarks "${run_root}" "${pods_per_node}" "${pod_churning_period}" "${number_of_ns}"
 
-## FIXME DRY image tag
+.PHONY: run/benchmarks/continuously
+run/benchmarks/continuously: $(E2E_BENCHMARKING_ROOT)
+	source $(COMMON_SCRIPT) && run_benchmarks_continuously
 
 .PHONY: image/build/local
 image/build/local:
-	docker build -t openshift/monitoring-benchmarks:latest .
+	docker build -t $(IMAGE_TAG) .
 
 .PHONY: image/shell/local
 image/shell/local:
-	docker run -it --rm --entrypoint /bin/bash openshift/monitoring-benchmarks:latest
+	docker run -it --rm --entrypoint /bin/bash $(IMAGE_TAG)
+
+.PHONY: image/push
+image/push:
+	echo 'Assumming logged with `docker login -u "${USER}" quay.io`'
+	docker tag $(IMAGE_TAG) quay.io/${USER}/$(IMAGE_NAME):$(IMAGE_VERSION)
+	docker push quay.io/${USER}/$(IMAGE_NAME):$(IMAGE_VERSION)
+	echo "Asumming project is public at https://quay.io/repository/${USER}/$(IMAGE_NAME)?tab=settings "
 
 .PHONY: image/build/openshift-internal
 image/build/openshift-internal: # assumes KUBECONFIG for user with permissions (e.g. kubeadmin)
-	docker build -t "$(shell oc get route default-route -n openshift-image-registry -o jsonpath="{.spec.host}")/openshift/monitoring-benchmarks:latest" .
+	docker build -t "$(shell oc get route default-route -n openshift-image-registry -o jsonpath="{.spec.host}")/$(IMAGE_TAG)" .

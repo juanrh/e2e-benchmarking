@@ -86,6 +86,18 @@ function jsonnet_build {
     jsonnet "${JSONNET_ROOT}/main.jsonnet" > "${MANIFESTS_ROOT}/main.json"
 }
 
+function run_benchmarks_continuously {
+    # Assuming env vars defined: BENCHMARKS_RUNS_ROOT PODS_PER_NODE POD_CHURNING_PERIOD NUMBER_OF_NS
+    while true
+    do
+        run_root="${BENCHMARKS_RUNS_ROOT}/$(date_w_format)"
+        mkdir -p "${run_root}"
+        echo "Starting new benchmark run at ${run_root}"
+        run_benchmarks "${run_root}" "${PODS_PER_NODE}" "${POD_CHURNING_PERIOD}" "${NUMBER_OF_NS}"
+        echo "Completed benchmark run at ${run_root}"
+    done
+}
+
 function run_benchmarks {
     run_root="${1}"
     PODS_PER_NODE="${2}"

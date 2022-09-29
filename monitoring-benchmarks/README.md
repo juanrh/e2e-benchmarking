@@ -73,7 +73,7 @@ export KUBECONFIG=$(make cluster/kubeconfig)
 
 
 ```bash
-docker login -u QUAY_USER quay.io
+docker login -u "${USER}" quay.io
 ```
 
 
