@@ -61,6 +61,13 @@ benchmarks/deploy: jsonnet/build
 benchmarks/undeploy: jsonnet/build
 	jq -r .[] $(MANIFESTS_ROOT)/main.json | oc delete --ignore-not-found=true -f -
 
+.PHONY: benchmarks/download
+# Assumes KUBECONFIG is set
+benchmarks/data/download: # make benchmarks/data/download output=$(pwd)/.local
+	oc -n monitoring-benchmarks rsync $$(oc -n monitoring-benchmarks get pod -l app=monitoring-benchmarks -o=jsonpath='{.items[].metadata.name}'):/var/lib/benchmarks/runs "${output}/" -c runner
+	echo
+	echo "See benchmark data at ${output}/runs"
+
 .venv:
 	python -m venv .venv
 

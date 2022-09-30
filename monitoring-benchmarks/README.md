@@ -11,9 +11,13 @@ Follow the subsections below to perform each step
 
 ## Prerequisites
 
+### Rysnc
+
+MacOS: `brew install rsync`
+
 ### Install jq
 
-For MacOS use `brew install jq`
+MacOS: `brew install jq`
 
 ### Get IAM user in our dev account, and setup AWS CLI profile
 
